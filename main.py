@@ -1,16 +1,18 @@
-# This is a sample Python script.
-
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
 import os
+from dotenv import load_dotenv
+from dbhandling import *
+from download_prozorro import *
+from tender_telegram_bot import *
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
+def main():
+    # uploading enviromental variables from ".env" file
+    load_dotenv()
+    TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+    TELEGRAM_CHANNEL_CHAT_ID = os.getenv("TELEGRAM_CHANNEL1_CHAT_ID")
+    if (TELEGRAM_BOT_TOKEN == None) or (TELEGRAM_CHANNEL_CHAT_ID == None):
+        sys.exit("Can't load data from .env")
 
+    send_result = send_to_telegram()
 
-# Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    print_hi('PyCharm')
-
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+    main()
