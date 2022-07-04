@@ -1,7 +1,7 @@
 import os
 from dotenv import load_dotenv
 from dbhandling import *
-from download_prozorro import *
+from load_prozorro import *
 from tender_telegram_bot import *
 
 class Telegram_Bot_Tests:
