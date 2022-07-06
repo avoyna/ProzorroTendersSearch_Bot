@@ -1,1 +1,1 @@
-__all__ = ["get_data_api_prozorro", "search_api_prozorro"]
+__all__ = ["get_json_api_prozorro", "get_data_api_prozorro", "search_api_prozorro"]

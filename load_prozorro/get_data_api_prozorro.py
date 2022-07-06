@@ -1,14 +1,15 @@
 import os.path
 import json
 import requests
-from datetime import datetime
 from dotenv import load_dotenv
+from dbhandling import *
+from load_prozorro import search_api_prozorro
 
 
 ENDPOINT_API = "https://public.api.openprocurement.org/api/2.5/tenders"
 ENDPOINT_Site = "https://public.api.openprocurement.org/api/2.5/tenders"
 
-def retrieve_singe_tender_data(tender_id, api_key="", endpoint=ENDPOINT_API):
+def retrieve_single_tender_data_to_json(tender_id, api_key="", endpoint=ENDPOINT_API):
     """
     Retrieves info on single tender
     :param api_key: no API to read data from PROZORRO needed
@@ -23,7 +24,7 @@ def retrieve_singe_tender_data(tender_id, api_key="", endpoint=ENDPOINT_API):
     response_json=""
     err_code=0
     params = {}
-    tender_url = ENDPOINT_API +"/" + tender_id
+    tender_url = endpoint +"/" + tender_id
 
     try:
         response = requests.get(tender_url, params=params)
@@ -38,7 +39,7 @@ def retrieve_singe_tender_data(tender_id, api_key="", endpoint=ENDPOINT_API):
 
     except requests.exceptions.RequestException as e:
         print("Connection error - can't read tenders info {}: {}".format(response.status_code, str(e)))
-        err_code=101
+        err_code = 101
 
     return response_json, err_code
 
@@ -70,31 +71,39 @@ def retrieve_data(api_key="", endpoint=ENDPOINT_API, return_records_limit=100, o
 
     if offset != 0.0:
         params["offset"] = offset
+    else:
+        offset = search_api_prozorro.find_first_row_offset()
+        params["offset"] = offset
 
     err_code=0
     next_offset=""
     next_url=""
 
     try:
-        response = requests.get(ENDPOINT_API, params=params)
+        response = requests.get(endpoint, params=params)
         response.raise_for_status()
         response_json = response.json()
         print(response_json)
 
         load_dotenv()
-        db_name=os.path.join(".",os.getenv("PROZORRO_DB_FOLDER"),"new_db_"+str(offset)+".json")
-        print(db_name)
-        with open(db_name, 'w', encoding='utf-8') as f:
-            json.dump(response_json, f, ensure_ascii=False, indent=4)
-            if not f.closed:
-                f.close()
-
+        db_name = os.path.join(".", os.getenv("PROZORRO_DB_FOLDER"), os.getenv("PROZORRO_DB_NAME"))
+        # db_name=os.path.join(".",os.getenv("PROZORRO_DB_FOLDER"),"new_db_"+str(offset)+".json")
+        # print(db_name)
+        # with open(db_name, 'w', encoding='utf-8') as f:
+        #     json.dump(response_json, f, ensure_ascii=False, indent=4)
+        #     if not f.closed:
+        #         f.close()
+        prozorro_db_insertion.insert_update(db_filename=os.getenv("PROZORRO_DB_NAME"),
+                                            tender_list_json_data=response_json,
+                                            last_offset=offset,
+                                            is_tender_list=True)
         # exit
-        # for tender_block in response_json["data"]:
-        #     json_tender, err_code = retrieve_singe_tender_data(tender_id=tender_block["id"])
+        for tender_block in response_json["data"]:
+            json_tender, err_code = retrieve_single_tender_data(tender_id=tender_block["id"])
         #     tender_date=datetime.fromisoformat(tender_block["dateModified"])
         # print(tender_date.date())
         # print(tender_date.time())
+
         next_offset = response_json["next_page"]["offset"]
         next_url = response_json["next_page"]["uri"]
 

@@ -1,6 +1,6 @@
 import requests
 from datetime import datetime
-from load_prozorro.get_data_api_prozorro import ENDPOINT_API, ENDPOINT_Site
+from load_prozorro import get_data_api_prozorro #ENDPOINT_API, ENDPOINT_Site
 
 
 def find_begin_date_offset(search_date):
@@ -21,7 +21,7 @@ def find_begin_date_offset(search_date):
     params["limit"] = output_limit
     params["descending"] = 1
     try:
-        response = requests.get(ENDPOINT_API, params=params)
+        response = requests.get(get_data_api_prozorro.ENDPOINT_API, params=params)
         response.raise_for_status()
         response_json = response.json()
 
@@ -48,7 +48,7 @@ def find_begin_date_offset(search_date):
                 params["descending"] = 1
 
                 try:
-                    response = requests.get(ENDPOINT_API, params=params)
+                    response = requests.get(get_data_api_prozorro.ENDPOINT_API, params=params)
                     # print(response.request.url)
                     response.raise_for_status()
                     response_json = response.json()
@@ -74,7 +74,7 @@ def find_begin_date_offset(search_date):
                     params["descending"] = 1
 
                     try:
-                        response = requests.get(ENDPOINT_API, params=params)
+                        response = requests.get(get_data_api_prozorro.ENDPOINT_API, params=params)
                         # print(response.request.url)
                         response.raise_for_status()
                         response_json = response.json()
@@ -149,7 +149,7 @@ def find_end_date_offset(search_date):
             params["descending"] = 1
 
             try:
-                response = requests.get(ENDPOINT_API, params=params)
+                response = requests.get(get_data_api_prozorro.ENDPOINT_API, params=params)
                 # print(response.request.url)
                 response.raise_for_status()
                 response_json = response.json()
@@ -177,7 +177,7 @@ def find_end_date_offset(search_date):
                 params["descending"] = 1
 
                 try:
-                    response = requests.get(ENDPOINT_API, params=params)
+                    response = requests.get(get_data_api_prozorro.ENDPOINT_API, params=params)
                     response.raise_for_status()
                     response_json = response.json()
                     prev_isodate_on_load = last_isodate_on_load
@@ -196,7 +196,7 @@ def find_end_date_offset(search_date):
         params["descending"] = 1
 
         try:
-            response = requests.get(ENDPOINT_API, params=params)
+            response = requests.get(get_data_api_prozorro.ENDPOINT_API, params=params)
             response.raise_for_status()
             response_json = response.json()
             offset_id = response_json["next_page"]["offset"]
@@ -209,4 +209,19 @@ def find_end_date_offset(search_date):
 
     return offset_id
 
+def find_first_row_offset():
+    offset_id = -1
 
+    params = {}
+    params["limit"] = 1
+    params["descending"] = 1
+    try:
+        response = requests.get(get_data_api_prozorro.ENDPOINT_API, params=params)
+        response.raise_for_status()
+        response_json = response.json()
+        offset_id = response_json["next_page"]["offset"]
+    except requests.exceptions.RequestException as e:
+        print("Connection error - code {}: {}".format(response.status_code, str(e)))
+
+
+    return offset_id

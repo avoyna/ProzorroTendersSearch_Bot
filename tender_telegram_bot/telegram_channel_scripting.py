@@ -4,7 +4,7 @@ from tender_telegram_bot import MarkdownV2_conversions
 
 
 def send_to_telegram(telegram_bot_token, telegram_channel_chat_id, telegram_channel_name, str_data="", html_data="",
-                     json_data="", json_data_type=0, channel_type="group"):
+                     json_data="", json_data_type=0):
 
     """ Sends messages to Telegram in different formats
     :param telegram_bot_token: TELEGRAM_BOT_TOKEN
