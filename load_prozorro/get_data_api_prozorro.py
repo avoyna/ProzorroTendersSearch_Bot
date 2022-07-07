@@ -7,7 +7,7 @@ from load_prozorro import search_api_prozorro
 
 
 ENDPOINT_API = "https://public.api.openprocurement.org/api/2.5/tenders"
-ENDPOINT_Site = "https://public.api.openprocurement.org/api/2.5/tenders"
+ENDPOINT_Site = "https://prozorro.gov.ua/search/tender"
 
 def retrieve_single_tender_data_to_json(tender_id, api_key="", endpoint=ENDPOINT_API):
     """

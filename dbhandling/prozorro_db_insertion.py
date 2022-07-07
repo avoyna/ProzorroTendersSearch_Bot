@@ -55,7 +55,8 @@ def insert_update(db_filename, last_offset=-1, write_tender_list=False, write_te
                     return_records_limit=return_records_limit,
                     offset=offset_q, descending=0)
                 if write_tender_list and (error_code == 0):
-                    error_code = insert_Tender_list(db_cursor=cursor_obj,
+                    error_code = insert_Tender_list(db_connection=connection_obj,
+                                                    db_cursor=cursor_obj,
                                                     json_data=tender_list_json_data,
                                                     log_id=insertion_log_id,
                                                     write_tender_info=write_tender_info,
@@ -67,7 +68,8 @@ def insert_update(db_filename, last_offset=-1, write_tender_list=False, write_te
                         return_records_limit=return_records_limit,
                         offset=offset_q, descending=0)
                     if write_tender_list and (error_code == 0):
-                        error_code = insert_Tender_list(db_cursor=cursor_obj,
+                        error_code = insert_Tender_list(db_connection=connection_obj,
+                                                        db_cursor=cursor_obj,
                                                         json_data=tender_list_json_data,
                                                         log_id=insertion_log_id,
                                                         write_tender_info=write_tender_info,
@@ -89,7 +91,8 @@ def insert_update(db_filename, last_offset=-1, write_tender_list=False, write_te
                     offset_q = tender_list_json_data["data"]["next_page"]["offset"]
 
                     if write_tender_list and (error_code==0):
-                        Tender_list_internal_ID, error_code = insert_Tender_list(db_cursor=cursor_obj,
+                        Tender_list_internal_ID, error_code = insert_Tender_list(db_connection=connection_obj,
+                                                        db_cursor=cursor_obj,
                                                         json_data=tender_list_json_data,
                                                         log_id=insertion_log_id,
                                                         write_tender_info=write_tender_info)
@@ -105,7 +108,8 @@ def insert_update(db_filename, last_offset=-1, write_tender_list=False, write_te
                     return_records_limit=return_records_limit,
                     offset=offset_q, descending=0)
                 if write_tender_list and (error_code==0):
-                    error_code = insert_Tender_list(db_cursor=cursor_obj,
+                    error_code = insert_Tender_list(db_connection=connection_obj,
+                                                    db_cursor=cursor_obj,
                                                          json_data=tender_list_json_data,
                                                          log_id=insertion_log_id,
                                                          write_tender_info=write_tender_info,
@@ -118,7 +122,8 @@ def insert_update(db_filename, last_offset=-1, write_tender_list=False, write_te
                         return_records_limit=return_records_limit,
                         offset=offset_q, descending=0)
                     if write_tender_list and (error_code==0):
-                        error_code = insert_Tender_list(db_cursor=cursor_obj,
+                        error_code = insert_Tender_list(db_connection=connection_obj,
+                                                        db_cursor=cursor_obj,
                                                              json_data=tender_list_json_data,
                                                              log_id=insertion_log_id,
                                                              write_tender_info=write_tender_info,
@@ -140,7 +145,8 @@ def insert_update(db_filename, last_offset=-1, write_tender_list=False, write_te
                     offset=offset_q, descending=descending)
 
                 if write_tender_list and (error_code==0):
-                    error_code = insert_Tender_list(db_cursor=cursor_obj,
+                    error_code = insert_Tender_list(db_connection=connection_obj,
+                                                    db_cursor=cursor_obj,
                                                     json_data=tender_list_json_data,
                                                     log_id=insertion_log_id,
                                                     write_tender_info=write_tender_info)
@@ -177,7 +183,7 @@ def insert_update(db_filename, last_offset=-1, write_tender_list=False, write_te
     return error_code
 
 
-def insert_Tender_list(db_cursor, json_data, log_id, write_tender_info=False, single_date_to_load=None):
+def insert_Tender_list(db_connection, db_cursor, json_data, log_id, write_tender_info=False, single_date_to_load=None):
     error_code = 0
 
     params = []
@@ -191,17 +197,28 @@ def insert_Tender_list(db_cursor, json_data, log_id, write_tender_info=False, si
 
         try:
             db_cursor.executemany(statement, params)
+            db_connection.commit()
 
             if write_tender_info and (json_data["data"]!=[]):
                 for tender in json_data["data"]:
+
                     tender_json, error_code = get_json_api_prozorro.retrieve_single_tender_data_to_json(
                         tender_id=tender["id"])
                     if error_code==0:
                         if (not single_date_to_load) or \
                                 (datetime.fromisoformat(tender["dateModified"]).date()==single_date_to_load):
-                            Tender_internal_ID, error_code = insert_Tender(db_cursor=db_cursor,
-                                               json_data=tender_json["data"],
-                                               Tender_list_internal_ID=tender["id"])
+                            statement = """SELECT internal_ID 
+                                        FROM Tender_list 
+                                        WHERE id = ?
+                                        ORDER BY internal_ID DESC LIMIT 1;"""
+                            value = (tender["id"],)
+                            db_cursor.execute(statement, value)
+                            insertion_tender_id = db_cursor.fetchone()[0]
+
+                            Tender_internal_ID, error_code = insert_Tender(db_connection=db_connection,
+                                                db_cursor=db_cursor,
+                                                json_data=tender_json["data"],
+                                                Tender_list_internal_ID=insertion_tender_id)
                             if error_code != 0:
                                 error_text = "Error writing tenders"
                                 exit
@@ -220,7 +237,7 @@ def insert_Tender_list(db_cursor, json_data, log_id, write_tender_info=False, si
     return error_code
 
 
-def insert_Tender(db_cursor, json_data, Tender_list_internal_ID):
+def insert_Tender(db_connection, db_cursor, json_data, Tender_list_internal_ID):
     error_code = 0
 
     Tender_internal_ID = 0
@@ -282,7 +299,7 @@ def insert_Tender(db_cursor, json_data, Tender_list_internal_ID):
     if "mainProcurementCategory" in json_data:
         mainProcurementCategory=json_data["mainProcurementCategory"]
     if "procuringEntity" in json_data:
-        procuringEntity_result=insert_update_procuringEntity(db_cursor=db_cursor,
+        procuringEntity_result=insert_update_procuringEntity(db_connection=db_connection, db_cursor=db_cursor,
                                                     json_data_procuringEntity=json_data["procuringEntity"])
         if procuringEntity_result<0:
             error_code = procuringEntity_result
@@ -332,6 +349,7 @@ def insert_Tender(db_cursor, json_data, Tender_list_internal_ID):
     
         try:
             db_cursor.execute(statement, value)
+            db_connection.commit()
     
             q_statement = """ SELECT internal_ID 
                             FROM Tender
@@ -342,7 +360,8 @@ def insert_Tender(db_cursor, json_data, Tender_list_internal_ID):
             Tender_internal_ID = db_cursor.fetchone()[0]
     
             if "items" in json_data:
-                insert_items(db_cursor=db_cursor, json_data_items=json_data["items"], Tender_internal_ID=Tender_internal_ID)
+                insert_items(db_connection=db_connection, db_cursor=db_cursor,
+                             json_data_items=json_data["items"], Tender_internal_ID=Tender_internal_ID)
     
     
         except sqlite3.Error as e:
@@ -356,7 +375,7 @@ def insert_Tender(db_cursor, json_data, Tender_list_internal_ID):
     return Tender_internal_ID, error_code
 
 
-def insert_update_procuringEntity(db_cursor, json_data_procuringEntity):
+def insert_update_procuringEntity(db_connection, db_cursor, json_data_procuringEntity):
     error_code = 0
     result = 0
     procuringEntityId = 0
@@ -438,6 +457,7 @@ def insert_update_procuringEntity(db_cursor, json_data_procuringEntity):
 
         try:
             db_cursor.execute(statement, value)
+            db_connection.commit()
         except sqlite3.Error as e:
             print(f"SQLite error {e.args[0]}")
             telegram_channel_scripting.raise_tech_message(telegram_bot_token=os.getenv("TELEGRAM_BOT_TOKEN"),
@@ -461,6 +481,7 @@ def insert_update_procuringEntity(db_cursor, json_data_procuringEntity):
 
         try:
             db_cursor.execute(statement, value)
+            db_connection.commit()
         except sqlite3.Error as e:
             print(f"SQLite error {e.args[0]}")
             telegram_channel_scripting.raise_tech_message(telegram_bot_token=os.getenv("TELEGRAM_BOT_TOKEN"),
@@ -493,7 +514,7 @@ def insert_update_procuringEntity(db_cursor, json_data_procuringEntity):
     return result
 
 
-def insert_items(db_cursor, json_data_items, Tender_internal_ID):
+def insert_items(db_connection, db_cursor, json_data_items, Tender_internal_ID):
     error_code = 0
     id = None
     description = None
@@ -574,6 +595,7 @@ def insert_items(db_cursor, json_data_items, Tender_internal_ID):
 
         try:
             db_cursor.execute(statement, value)
+            db_connection.commit()
         except sqlite3.Error as e:
             print(f"SQLite error {e.args[0]}")
             telegram_channel_scripting.raise_tech_message(telegram_bot_token=os.getenv("TELEGRAM_BOT_TOKEN"),

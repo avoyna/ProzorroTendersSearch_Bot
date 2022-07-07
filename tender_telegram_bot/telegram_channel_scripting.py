@@ -35,7 +35,7 @@ def send_to_telegram(telegram_bot_token, telegram_channel_chat_id, telegram_chan
             print("Connection error - code {}: {}".format(response.status_code, str(e)))
             raise_tech_message(telegram_bot_token=telegram_bot_token,
                                err_module="ProZorro Bot - "+telegram_channel_name,
-                               err_message="String message can't be delivered. \n"+e)
+                               err_message="String message can't be delivered. \n" + e)
             return response.status_code
 
     elif html_data != "":

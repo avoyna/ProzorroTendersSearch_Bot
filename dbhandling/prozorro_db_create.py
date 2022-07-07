@@ -2,6 +2,7 @@ import sqlite3
 import os.path
 from dotenv import load_dotenv
 from tender_telegram_bot import telegram_channel_scripting
+from datetime import datetime
 
 def create_db(db_filename):
     """
@@ -174,6 +175,16 @@ def create_prozorro_tables(db_filename):
                         FOREIGN KEY (tender_internal_ID) REFERENCES Tender (internal_ID) ON DELETE CASCADE
                     ); """
         cursor_obj.execute(table)
+        connection_obj.commit()
+
+        statement = """INSERT INTO Insertion_log (insertion_datetime, inserted_by_user, error_code, 
+                                error_text, last_offset) VALUES (?, ?, ?, ?, ?); """
+
+        currentDateTime = datetime.now()
+
+        values = (currentDateTime, "db_creator", "100", "Creating empty tables", None)
+
+        cursor_obj.execute(statement, values)
         connection_obj.commit()
 
 

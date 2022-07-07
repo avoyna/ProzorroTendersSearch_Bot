@@ -3,7 +3,7 @@ import os
 from dotenv import load_dotenv
 from load_prozorro import *
 from dbhandling import *
-from datetime import *
+from datetime import datetime, timedelta, date
 
 PROZORRO_DB_NAME = "local_prozorro.db"
 
@@ -23,8 +23,8 @@ def insert_prozorro_data():
     #
     # err_code, offset, next_url = get_data_api_prozorro.retrieve_data(return_records_limit=10, offset=0.0,
 
-    ### simple db initializing with data erasing
-    prozorro_db_insertion.insert_update(db_filename=os.getenv("PROZORRO_DB_NAME"), is_initializing=True)
+    # ### simple db initializing with data erasing
+    # prozorro_db_insertion.insert_update(db_filename=os.getenv("PROZORRO_DB_NAME"), is_initializing=True)
 
     ### load of 1 page of tenders (10 last tenders) without saving tender list and tender details
     ### accending since the last entry in Prozorro DB (no effect)
@@ -52,10 +52,14 @@ def insert_prozorro_data():
     #                                     return_records_limit=2)
 
     ###load all tenders of the specific date
-    prozorro_db_insertion.insert_update(db_filename=os.getenv("PROZORRO_DB_NAME"),
+
+    load_date = date(2022, 6, 10)
+    for i in range(25):
+        load_date += timedelta(days=1)
+        prozorro_db_insertion.insert_update(db_filename=os.getenv("PROZORRO_DB_NAME"),
                                         write_tender_list=True,
                                         write_tender_info=True,
-                                        single_date_to_load=date(2022, 6, 1))
+                                        single_date_to_load=load_date)
 
     ### load all data from the last successive download
     prozorro_db_insertion.insert_update(db_filename=os.getenv("PROZORRO_DB_NAME"),
