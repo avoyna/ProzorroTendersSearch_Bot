@@ -5,10 +5,9 @@ from load_prozorro import *
 from dbhandling import *
 from datetime import datetime, timedelta, date
 
-PROZORRO_DB_NAME = "local_prozorro.db"
-
 def create_prozorro_databases():
-    error_code = prozorro_db_create.create_db(PROZORRO_DB_NAME)
+    load_dotenv()
+    error_code = prozorro_db_create.create_db(os.getenv("PROZORRO_DB_NAME"))
     if error_code==0:
         error_code = prozorro_db_create.create_prozorro_tables(PROZORRO_DB_NAME)
         #prozorro_db_insertion.insert_update(PROZORRO_DB_NAME)
@@ -53,17 +52,17 @@ def insert_prozorro_data():
 
     ###load all tenders of the specific date
 
-    load_date = date(2022, 6, 10)
-    for i in range(25):
-        load_date += timedelta(days=1)
-        prozorro_db_insertion.insert_update(db_filename=os.getenv("PROZORRO_DB_NAME"),
-                                        write_tender_list=True,
-                                        write_tender_info=True,
-                                        single_date_to_load=load_date)
+    # load_date = date(2022, 7, 5)
+    # for i in range(2):
+        # load_date += timedelta(days=1)
+        # prozorro_db_insertion.insert_update(db_filename=os.getenv("PROZORRO_DB_NAME"),
+        #                                 write_tender_list=True,
+        #                                 write_tender_info=True,
+        #                                 single_date_to_load=load_date)
 
     ### load all data from the last successive download
     prozorro_db_insertion.insert_update(db_filename=os.getenv("PROZORRO_DB_NAME"),
-                                        new_data_only=True)
+                                        new_data_only=True, write_active_tenders_only=True)
 
 
 def main():

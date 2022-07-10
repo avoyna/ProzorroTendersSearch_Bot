@@ -7,23 +7,26 @@ import os
 def show_interesting_prozorro(prozorro_info):
     load_dotenv()
     items_text = ""
+    items_text_count = 0
 
     for message_id, message in enumerate(prozorro_info):
         if (len(prozorro_info) > message_id+1) and (message[0]==prozorro_info[message_id+1][0]):
-            if not message[13] == None:
-                items_text += "`" + MarkdownV2_conversions.add_telegram_text_escaped_characters(message[13]) + "`\n"
-            # if not message[15] == None:
-            #     items_text += "`" + MarkdownV2_conversions.add_telegram_text_escaped_characters(message[15]) + \
-            #                     ", " + MarkdownV2_conversions.add_telegram_text_escaped_characters(message[14]) + "`\n"
-            # if not message[16] == None:
-            #     items_text += "`" + MarkdownV2_conversions.add_telegram_text_escaped_characters(message[16]) + "`"
-            # if not message[17] == None:
-            #     items_text += ", `" + MarkdownV2_conversions.add_telegram_text_escaped_characters(message[17]) + "`"
-            # if not message[18] == None:
-            #     items_text += ", `" + MarkdownV2_conversions.add_telegram_text_escaped_characters(message[18]) + "`"
-            items_text += "\n"
+            if items_text_count < 4:
+                if not message[13] == None:
+                    items_text += "`" + MarkdownV2_conversions.add_telegram_text_escaped_characters(message[13]) + "`\n"
+                # if not message[15] == None:
+                #     items_text += "`" + MarkdownV2_conversions.add_telegram_text_escaped_characters(message[15]) + \
+                #                     ", " + MarkdownV2_conversions.add_telegram_text_escaped_characters(message[14]) + "`\n"
+                # if not message[16] == None:
+                #     items_text += "`" + MarkdownV2_conversions.add_telegram_text_escaped_characters(message[16]) + "`"
+                # if not message[17] == None:
+                #     items_text += ", `" + MarkdownV2_conversions.add_telegram_text_escaped_characters(message[17]) + "`"
+                # if not message[18] == None:
+                #     items_text += ", `" + MarkdownV2_conversions.add_telegram_text_escaped_characters(message[18]) + "`"
+                items_text += "\n"
+            items_text_count += 1
 
-        else:
+        elif prozorro_info!=[[]]:
             message_text = ""
 
             ### Uploaded fields in order
@@ -31,7 +34,7 @@ def show_interesting_prozorro(prozorro_info):
             # 4 t.value_currency, 5 t.dateModified, 6 t.status, 7 t.tenderPeriod_endDate, 8 t.enquiryPeriod_endDate,
             # 9 pe.name, 10 pe.identifier_id, 11 pe.address_region, 12 pe.address_locality, 13 i.description,
             # 14 i.classification_description, 15 i.classification_id, 16 i.deliveryAddress_region,
-            # 17 i.deliveryAddress_locality, 18 i.deliveryAddress_streetAddress
+            # 17 i.deliveryAddress_locality, 18 i.deliveryAddress_streetAddress, 19 t.tenderID
 
             if not message[9] == None:
                 message_text += "*" + MarkdownV2_conversions.add_telegram_text_escaped_characters(message[9]) + ", *"
@@ -49,10 +52,38 @@ def show_interesting_prozorro(prozorro_info):
                     "{:,.2f}".format(message[3]).replace(',', ' ')) + " " + \
                                 MarkdownV2_conversions.add_telegram_text_escaped_characters(message[4]) + "* \n"
             if not message[6] == None:
-                message_text += "_" + MarkdownV2_conversions.add_telegram_text_escaped_characters(message[6]) + "_\n"
+                match message[6]:
+                    case "active":
+                        status = "Активний тендер"
+                    case "active.enquiries":
+                        status = "Період уточнень"
+                    case "active.tendering":
+                        status = "Період аукціону"
+                    case "active.qualification":
+                        status = "Кваліфікація переможця"
+                    case "active.awarded":
+                        status = "Пропозиції розглянуто"
+                    case "unsuccessful":
+                        status = "Закупівля не відбулась"
+                    case "complete":
+                        status = "Закупівля завершена"
+                    case "cancelled":
+                        status = "Відмінена закупівля"
+                    case "active.pre-qualification":
+                        status = "Перед-кваліфікаційний період"
+                    case "active.pre-qualification.stand-still":
+                        status = "Блокування перед аукціоном"
+                    case _:
+                        status = message[6]
+
+                message_text += "_" + MarkdownV2_conversions.add_telegram_text_escaped_characters(status) + "_\n"
+
+            if not message[19] == None:
+                message_text += "_ID: " + MarkdownV2_conversions.add_telegram_text_escaped_characters(message[19]) + "_\n"
 
             message_text += items_text
             items_text = ""
+            items_text_count = 0
             if not message[13] == None:
                 message_text += "`" + MarkdownV2_conversions.add_telegram_text_escaped_characters(message[13]) + "`\n"
             if not message[15] == None:

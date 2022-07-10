@@ -1,5 +1,5 @@
 import sqlite3
-import os.path
+import os
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
 from tender_telegram_bot import telegram_channel_scripting
@@ -7,16 +7,18 @@ from load_prozorro import get_json_api_prozorro, search_api_prozorro
 from dbhandling import prozorro_db_create, prozorro_db_queries
 
 
+ACTIVE_TENDER_STATUS_STARTWITH = ("active", "active")
+
+
 def insert_update(db_filename, last_offset=-1, write_tender_list=False, write_tender_info=False, pages_limit=1,
                   return_records_limit=10, offset=0.0, descending=0, is_initializing=False,
-                  single_date_to_load=None, new_data_only=False):
+                  single_date_to_load=None, new_data_only=False, write_active_tenders_only=False):
 
     connection_obj = None
     load_dotenv()
     db_fn = os.path.join(".", os.getenv("PROZORRO_DB_FOLDER"), db_filename)
     error_code = 0
     error_text = "Successful operation"
-    insertion_log_id = 0
 
     if is_initializing:
         prozorro_db_create.drop_data_tables(db_filename=db_filename)
@@ -60,7 +62,8 @@ def insert_update(db_filename, last_offset=-1, write_tender_list=False, write_te
                                                     json_data=tender_list_json_data,
                                                     log_id=insertion_log_id,
                                                     write_tender_info=write_tender_info,
-                                                    single_date_to_load=single_date_to_load)
+                                                    single_date_to_load=single_date_to_load,
+                                                    write_active_tenders_only=write_active_tenders_only)
 
                 while (tender_list_json_data["data"] != []) and (error_code == 0):
                     offset_q = tender_list_json_data["next_page"]["offset"]
@@ -73,7 +76,8 @@ def insert_update(db_filename, last_offset=-1, write_tender_list=False, write_te
                                                         json_data=tender_list_json_data,
                                                         log_id=insertion_log_id,
                                                         write_tender_info=write_tender_info,
-                                                        single_date_to_load=single_date_to_load)
+                                                        single_date_to_load=single_date_to_load,
+                                                        write_active_tenders_only=write_active_tenders_only)
 
                         if error_code != 0:
                             error_text = "Error with tender list upload"
@@ -95,7 +99,8 @@ def insert_update(db_filename, last_offset=-1, write_tender_list=False, write_te
                                                         db_cursor=cursor_obj,
                                                         json_data=tender_list_json_data,
                                                         log_id=insertion_log_id,
-                                                        write_tender_info=write_tender_info)
+                                                        write_tender_info=write_tender_info,
+                                                        write_active_tenders_only=wrire_active_tenders_only)
                         if error_code != 0:
                             error_text = "Error with tender list upload"
                         connection_obj.commit()
@@ -110,10 +115,11 @@ def insert_update(db_filename, last_offset=-1, write_tender_list=False, write_te
                 if write_tender_list and (error_code==0):
                     error_code = insert_Tender_list(db_connection=connection_obj,
                                                     db_cursor=cursor_obj,
-                                                         json_data=tender_list_json_data,
-                                                         log_id=insertion_log_id,
-                                                         write_tender_info=write_tender_info,
-                                                         single_date_to_load=single_date_to_load)
+                                                    json_data=tender_list_json_data,
+                                                    log_id=insertion_log_id,
+                                                    write_tender_info=write_tender_info,
+                                                    single_date_to_load=single_date_to_load,
+                                                    write_active_tenders_only=wrire_active_tenders_only)
 
                 while (tender_list_json_data["data"]!=[]) and (error_code==0) and \
         (datetime.fromisoformat(tender_list_json_data["data"][0]["dateModified"]).date()==single_date_to_load):
@@ -124,10 +130,11 @@ def insert_update(db_filename, last_offset=-1, write_tender_list=False, write_te
                     if write_tender_list and (error_code==0):
                         error_code = insert_Tender_list(db_connection=connection_obj,
                                                         db_cursor=cursor_obj,
-                                                             json_data=tender_list_json_data,
-                                                             log_id=insertion_log_id,
-                                                             write_tender_info=write_tender_info,
-                                                             single_date_to_load=single_date_to_load)
+                                                        json_data=tender_list_json_data,
+                                                        log_id=insertion_log_id,
+                                                        write_tender_info=write_tender_info,
+                                                        single_date_to_load=single_date_to_load,
+                                                        write_active_tenders_only=wrire_active_tenders_only)
 
 
                         if error_code != 0:
@@ -183,56 +190,106 @@ def insert_update(db_filename, last_offset=-1, write_tender_list=False, write_te
     return error_code
 
 
-def insert_Tender_list(db_connection, db_cursor, json_data, log_id, write_tender_info=False, single_date_to_load=None):
+def insert_Tender_list(db_connection, db_cursor, json_data, log_id, write_tender_info=False,
+                       single_date_to_load=None, write_active_tenders_only=False):
     error_code = 0
 
     params = []
     if json_data["data"]!=[]:
-        for tender_id in json_data["data"]:
-            if (not single_date_to_load) or \
-                    (datetime.fromisoformat(tender_id["dateModified"]).date() == single_date_to_load):
-                params.append((tender_id["id"], tender_id["dateModified"], log_id))
+        if (not write_active_tenders_only):
+            for tender in json_data["data"]:
+                if (not single_date_to_load) or \
+                        (datetime.fromisoformat(tender["dateModified"]).date() == single_date_to_load):
+                    params.append((tender["id"], tender["dateModified"], log_id))
 
-        statement = "INSERT INTO Tender_List (id, dateModified, insertion_ID) VALUES (?, ?, ?); "
+            statement = "INSERT INTO Tender_List (id, dateModified, insertion_ID) VALUES (?, ?, ?); "
 
-        try:
-            db_cursor.executemany(statement, params)
-            db_connection.commit()
+            try:
+                db_cursor.executemany(statement, params)
+                db_connection.commit()
 
-            if write_tender_info and (json_data["data"]!=[]):
-                for tender in json_data["data"]:
+                if write_tender_info and (json_data["data"]!=[]):
+                    for tender in json_data["data"]:
 
+                        tender_json, error_code = get_json_api_prozorro.retrieve_single_tender_data_to_json(
+                            tender_id=tender["id"])
+                        if error_code==0:
+                            if (not single_date_to_load) or \
+                                    (datetime.fromisoformat(tender["dateModified"]).date()==single_date_to_load):
+                                statement = """SELECT internal_ID 
+                                            FROM Tender_list 
+                                            WHERE id = ?
+                                            ORDER BY internal_ID DESC LIMIT 1;"""
+                                value = (tender["id"],)
+                                db_cursor.execute(statement, value)
+                                insertion_tender_id = db_cursor.fetchone()[0]
+
+                                Tender_internal_ID, error_code = insert_Tender(db_connection=db_connection,
+                                                    db_cursor=db_cursor,
+                                                    json_data=tender_json["data"],
+                                                    Tender_list_internal_ID=insertion_tender_id)
+                                if error_code != 0:
+                                    error_text = "Error writing tenders"
+                                    exit
+                        else:
+                            exit
+
+
+            except sqlite3.Error as e:
+                print(f"SQLite error {e.args[0]}")
+                telegram_channel_scripting.raise_tech_message(telegram_bot_token=os.getenv("TELEGRAM_BOT_TOKEN"),
+                                                              err_module="Prozorro Local DB",
+                                                              err_message="Database Tender_list data insertion error. " +
+                                                                          e.args[0])
+                error_code = -3
+
+        else: # if write_active_tenders_only
+            for tender in json_data["data"]:
+                if (not single_date_to_load) or \
+                        (datetime.fromisoformat(tender["dateModified"]).date() == single_date_to_load):
                     tender_json, error_code = get_json_api_prozorro.retrieve_single_tender_data_to_json(
                         tender_id=tender["id"])
-                    if error_code==0:
+                    if error_code == 0:
                         if (not single_date_to_load) or \
-                                (datetime.fromisoformat(tender["dateModified"]).date()==single_date_to_load):
-                            statement = """SELECT internal_ID 
-                                        FROM Tender_list 
-                                        WHERE id = ?
-                                        ORDER BY internal_ID DESC LIMIT 1;"""
-                            value = (tender["id"],)
-                            db_cursor.execute(statement, value)
-                            insertion_tender_id = db_cursor.fetchone()[0]
+                                (datetime.fromisoformat(tender["dateModified"]).date() == single_date_to_load):
+                            if (tender_json["data"]["status"].startswith(ACTIVE_TENDER_STATUS_STARTWITH)):
+                                params.append((tender["id"], tender["dateModified"], log_id))
 
-                            Tender_internal_ID, error_code = insert_Tender(db_connection=db_connection,
-                                                db_cursor=db_cursor,
-                                                json_data=tender_json["data"],
-                                                Tender_list_internal_ID=insertion_tender_id)
-                            if error_code != 0:
-                                error_text = "Error writing tenders"
-                                exit
+                                statement = "INSERT INTO Tender_List (id, dateModified, insertion_ID) VALUES (?, ?, ?); "
+
+                                try:
+                                    db_cursor.execute(statement, params[-1])
+                                    db_connection.commit()
+
+                                    if write_tender_info and (json_data["data"] != []):
+
+                                        statement = """SELECT internal_ID 
+                                                                    FROM Tender_list 
+                                                                    WHERE id = ?
+                                                                    ORDER BY internal_ID DESC LIMIT 1;"""
+                                        value = (tender["id"],)
+                                        db_cursor.execute(statement, value)
+                                        insertion_tender_id = db_cursor.fetchone()[0]
+
+                                        Tender_internal_ID, error_code = insert_Tender(db_connection=db_connection,
+                                                                                       db_cursor=db_cursor,
+                                                                                       json_data=tender_json["data"],
+                                                                                       Tender_list_internal_ID=insertion_tender_id)
+                                        if error_code != 0:
+                                            error_text = "Error writing tenders"
+                                            exit
+
+                                except sqlite3.Error as e:
+                                    print(f"SQLite error {e.args[0]}")
+                                    telegram_channel_scripting.raise_tech_message(
+                                        telegram_bot_token=os.getenv("TELEGRAM_BOT_TOKEN"),
+                                        err_module="Prozorro Local DB",
+                                        err_message="Database Tender_list data insertion error(only active tenders). " +
+                                                    e.args[0])
+                                    error_code = -13
+
                     else:
                         exit
-
-
-        except sqlite3.Error as e:
-            print(f"SQLite error {e.args[0]}")
-            telegram_channel_scripting.raise_tech_message(telegram_bot_token=os.getenv("TELEGRAM_BOT_TOKEN"),
-                                                          err_module="Prozorro Local DB",
-                                                          err_message="Database Tender_list data insertion error. " +
-                                                                      e.args[0])
-            error_code = -3
 
     return error_code
 
@@ -267,6 +324,8 @@ def insert_Tender(db_connection, db_cursor, json_data, Tender_list_internal_ID):
     complaintPeriod_endDate = None
     auctionPeriod_startDate = None
     auctionPeriod_endDate = None
+    id = None
+    tenderID = None
     procuringEntity_result = 0
     
     if "title" in json_data:
@@ -330,14 +389,20 @@ def insert_Tender(db_connection, db_cursor, json_data, Tender_list_internal_ID):
         if "endDate" in json_data["auctionPeriod"]:
             auctionPeriod_endDate=json_data["auctionPeriod"]["endDate"]
 
+    if "id" in json_data:
+        id=json_data["id"]
+    if "tenderID" in json_data:
+        tenderID=json_data["tenderID"]
+
     if error_code==0:
         statement = """INSERT INTO Tender (Tender_list_internal_ID, title, description, auctionUrl, value_amount, 
                 value_currency, value_valueAddedTaxIncluded, owner, date, dateCreated, dateModified, status, 
                 submissionMethod, procurementMethod, mainProcurementCategory, procuringEntity_internal_ID, 
                 enquiryPeriod_startDate, enquiryPeriod_endDate, enquiryPeriod_clarificationsUntil, 
                 enquiryPeriod_invalidationDate, tenderPeriod_startDate, tenderPeriod_endDate, 
-                complaintPeriod_startDate, complaintPeriod_endDate, auctionPeriod_startDate, auctionPeriod_endDate)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?); """
+                complaintPeriod_startDate, complaintPeriod_endDate, auctionPeriod_startDate, 
+                auctionPeriod_endDate, id, tenderID)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?); """
     
         value = (Tender_list_internal_ID, title, description, auctionUrl, value_amount, value_currency,
                  value_valueAddedTaxIncluded, owner,
@@ -345,7 +410,7 @@ def insert_Tender(db_connection, db_cursor, json_data, Tender_list_internal_ID):
                  procuringEntity_internal_ID, enquiryPeriod_startDate, enquiryPeriod_endDate,
                  enquiryPeriod_clarificationsUntil, enquiryPeriod_invalidationDate, tenderPeriod_startDate,
                  tenderPeriod_endDate, complaintPeriod_startDate, complaintPeriod_endDate,auctionPeriod_startDate,
-                 auctionPeriod_endDate)
+                 auctionPeriod_endDate, id, tenderID)
     
         try:
             db_cursor.execute(statement, value)

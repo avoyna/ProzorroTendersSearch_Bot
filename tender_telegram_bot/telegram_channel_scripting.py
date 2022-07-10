@@ -1,5 +1,6 @@
 import requests
 import os
+import time
 from tender_telegram_bot import MarkdownV2_conversions
 
 
@@ -29,13 +30,15 @@ def send_to_telegram(telegram_bot_token, telegram_channel_chat_id, telegram_chan
             response = requests.get(url, params=params)
 
             response.raise_for_status()
+            time.sleep(5)
+
             response_json = response.json()
             print(response_json)
         except requests.exceptions.RequestException as e:
             print("Connection error - code {}: {}".format(response.status_code, str(e)))
             raise_tech_message(telegram_bot_token=telegram_bot_token,
                                err_module="ProZorro Bot - "+telegram_channel_name,
-                               err_message="String message can't be delivered. \n" + e)
+                               err_message="String message can't be delivered. \n" + str(e))
             return response.status_code
 
     elif html_data != "":

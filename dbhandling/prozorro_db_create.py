@@ -145,6 +145,8 @@ def create_prozorro_tables(db_filename):
                         complaintPeriod_endDate DATETIME,
                         auctionPeriod_startDate DATETIME,
                         auctionPeriod_endDate DATETIME,
+                        id TEXT,
+                        tenderID TEXT,
                         FOREIGN KEY (Tender_list_internal_ID) REFERENCES Tender_list (internal_ID) ON DELETE CASCADE,
                         FOREIGN KEY (procuringEntity_internal_ID) REFERENCES procuringEntity (internal_ID) ON DELETE CASCADE
                     ); """
