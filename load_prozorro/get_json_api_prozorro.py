@@ -1,4 +1,5 @@
 import requests
+from tender_telegram_bot import telegram_channel_scripting
 from load_prozorro import get_data_api_prozorro, search_api_prozorro
 
 def retrieve_json_tender_list(api_key="", endpoint="", return_records_limit=100, offset=0.0, descending=0):
@@ -45,6 +46,11 @@ def retrieve_json_tender_list(api_key="", endpoint="", return_records_limit=100,
 
     except requests.exceptions.RequestException as e:
         print("Connection error - code {}: {}".format(response.status_code, str(e)))
+        telegram_channel_scripting.raise_tech_message(
+            telegram_bot_token=os.getenv("TELEGRAM_BOT_TOKEN"),
+            err_module="Prozorro Local DB",
+            err_message="Load from Prozorro Tender_list data error. " +
+                        e.args[0])
         err_code = -11
 
     return response_json, err_code
@@ -77,6 +83,10 @@ def retrieve_single_tender_data_to_json(tender_id, api_key="", endpoint=""):
 
     except requests.exceptions.RequestException as e:
         print("Connection error - can't read tenders info: {}".format(str(e)))
+        telegram_channel_scripting.raise_tech_message(
+            telegram_bot_token=os.getenv("TELEGRAM_BOT_TOKEN"),
+            err_module="Prozorro Local DB",
+            err_message="Load from Prozorro Tender data error. " + e.args[0])
         err_code = -101
 
     return response_json, err_code
