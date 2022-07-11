@@ -34,7 +34,8 @@ def save_user_last_db_load_info_to_json_file(db_connection, db_cursor, username=
         print(f"SQLite error {e.args[0]}")
         telegram_channel_scripting.raise_tech_message(telegram_bot_token=os.getenv("TELEGRAM_BOT_TOKEN"),
                                                       err_module="Prozorro Local DB",
-                                                      err_message="Database data selection error." + e.args[0])
+                                                      err_message="Database data selection error." +
+                                                                  str(e.args[0]))
         error_code = -83
 
     return error_code

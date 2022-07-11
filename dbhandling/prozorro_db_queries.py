@@ -31,7 +31,8 @@ def find_last_successive_offset_in_db(db_filename):
         print(f"SQLite error {e.args[0]}")
         telegram_channel_scripting.raise_tech_message(telegram_bot_token=os.getenv("TELEGRAM_BOT_TOKEN"),
                                              err_module="Prozorro Local DB",
-                                             err_message="Database last  " + db_fn + "." + e.args[0])
+                                             err_message="Database last  " + db_fn + "." +
+                                                         str(e.args[0]))
         error_code = -30
 
     finally:
@@ -166,7 +167,8 @@ def select_interesting_prozorro(db_filename, last_viewed_tender_time=None, start
             print(f"SQLite error {e.args[0]}")
             telegram_channel_scripting.raise_tech_message(telegram_bot_token=os.getenv("TELEGRAM_BOT_TOKEN"),
                                                           err_module="Prozorro Local DB",
-                                                          err_message="Database last  " + db_fn + "." + e.args[0])
+                                                          err_message="Database last  " + db_fn + "." +
+                                                                      str(e.args[0]))
             error_code = -30
 
         finally:

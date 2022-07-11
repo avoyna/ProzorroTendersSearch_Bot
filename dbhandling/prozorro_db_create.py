@@ -194,7 +194,8 @@ def create_prozorro_tables(db_filename):
         print(f"SQLite error {e.args[0]}")
         telegram_channel_scripting.raise_tech_message(telegram_bot_token=os.getenv("TELEGRAM_BOT_TOKEN"),
                                              err_module="Prozorro Local DB",
-                                             err_message="Database creation error in " + db_fn + "." + e.args[0])
+                                             err_message="Database creation error in " + db_fn + "." +
+                                                         str(e.args[0]))
         return -1
 
     finally:
@@ -238,8 +239,8 @@ def drop_data_tables(db_filename):
         print(f"SQLite error {e.args[0]}")
         telegram_channel_scripting.raise_tech_message(telegram_bot_token=os.getenv("TELEGRAM_BOT_TOKEN"),
                                                       err_module="Prozorro Local DB",
-                                                      err_message="Database dropping error in " + db_fn + "." + e.args[
-                                                          0])
+                                                      err_message="Database dropping error in " + db_fn + "." +
+                                                                  str(e.args[0]))
         error_code = -80
 
     finally:

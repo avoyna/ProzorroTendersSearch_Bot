@@ -180,7 +180,8 @@ def insert_update(db_filename, last_offset=-1, write_tender_list=False, write_te
             print(f"SQLite error {e.args[0]}")
             telegram_channel_scripting.raise_tech_message(telegram_bot_token=os.getenv("TELEGRAM_BOT_TOKEN"),
                                                  err_module="Prozorro Local DB",
-                                                 err_message="Database data insertion error in " + db_fn + "." + e.args[0])
+                                                 err_message="Database data insertion error in " + db_fn + "." +
+                                                             str(e.args[0]))
             error_code = -1
 
         finally:
@@ -240,7 +241,7 @@ def insert_Tender_list(db_connection, db_cursor, json_data, log_id, write_tender
                 telegram_channel_scripting.raise_tech_message(telegram_bot_token=os.getenv("TELEGRAM_BOT_TOKEN"),
                                                               err_module="Prozorro Local DB",
                                                               err_message="Database Tender_list data insertion error. " +
-                                                                          e.args[0])
+                                                                          str(e.args[0]))
                 error_code = -3
 
         else: # if write_active_tenders_only
@@ -285,7 +286,7 @@ def insert_Tender_list(db_connection, db_cursor, json_data, log_id, write_tender
                                         telegram_bot_token=os.getenv("TELEGRAM_BOT_TOKEN"),
                                         err_module="Prozorro Local DB",
                                         err_message="Database Tender_list data insertion error(only active tenders). " +
-                                                    e.args[0])
+                                                    str(e.args[0]))
                                     error_code = -13
 
                     else:
@@ -434,7 +435,7 @@ def insert_Tender(db_connection, db_cursor, json_data, Tender_list_internal_ID):
             telegram_channel_scripting.raise_tech_message(telegram_bot_token=os.getenv("TELEGRAM_BOT_TOKEN"),
                                                           err_module="Prozorro Local DB",
                                                           err_message="Database Tender data insertion error. " +
-                                                                      e.args[0])
+                                                                      str(e.args[0]))
             error_code = -3
 
     return Tender_internal_ID, error_code
@@ -528,7 +529,7 @@ def insert_update_procuringEntity(db_connection, db_cursor, json_data_procuringE
             telegram_channel_scripting.raise_tech_message(telegram_bot_token=os.getenv("TELEGRAM_BOT_TOKEN"),
                                                           err_module="Prozorro Local DB",
                                                           err_message="Database procuringEntity data insertion error." +
-                                                                      e.args[0])
+                                                                      str(e.args[0]))
             error_code = -5
 
     else:
@@ -552,7 +553,7 @@ def insert_update_procuringEntity(db_connection, db_cursor, json_data_procuringE
             telegram_channel_scripting.raise_tech_message(telegram_bot_token=os.getenv("TELEGRAM_BOT_TOKEN"),
                                                           err_module="Prozorro Local DB",
                                                           err_message="Database procuringEntity data updating error." +
-                                                                      e.args[0])
+                                                                      str(e.args[0]))
             error_code = -15
 
     try:
@@ -568,7 +569,7 @@ def insert_update_procuringEntity(db_connection, db_cursor, json_data_procuringE
         telegram_channel_scripting.raise_tech_message(telegram_bot_token=os.getenv("TELEGRAM_BOT_TOKEN"),
                                                       err_module="Prozorro Local DB",
                                                       err_message="Database procuringEntity data retrieving error." +
-                                                                  e.args[0])
+                                                                  str(e.args[0]))
         error_code = -25
 
     if error_code<0:
@@ -666,7 +667,7 @@ def insert_items(db_connection, db_cursor, json_data_items, Tender_internal_ID):
             telegram_channel_scripting.raise_tech_message(telegram_bot_token=os.getenv("TELEGRAM_BOT_TOKEN"),
                                                           err_module="Prozorro Local DB",
                                                           err_message="Database items data insertion error." +
-                                                                      e.args[0])
+                                                                      str(e.args[0]))
             error_code = -7
 
 
