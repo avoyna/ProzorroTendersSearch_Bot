@@ -24,9 +24,8 @@ def delete_old_data(db_filename, min_date_to_keep_in_base):
         print(f"SQLite error {e.args[0]}")
         telegram_channel_scripting.raise_tech_message(telegram_bot_token=os.getenv("TELEGRAM_BOT_TOKEN"),
                                                       err_module="Prozorro Local DB",
-                                                      err_message="Database dropping error in " + db_fn + "." + e.args[
-                                                          0])
-        error_code = -80
+                                                      err_message="Database old data deleting error ." + e.args[0])
+        error_code = -87
 
     finally:
         if connection_obj:
