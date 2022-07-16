@@ -103,7 +103,7 @@ def select_interesting_prozorro(db_filename, last_viewed_tender_time=None, start
                     OR i.classification_id LIKE '512%' OR i.classification_id LIKE '515%' OR i.classification_id LIKE '517%' 
                     OR i.classification_id LIKE '518%' OR i.classification_id LIKE '519%' 
                     OR (i.classification_id LIKE '71%' AND i.classification_id NOT LIKE '7152%' 
-                     AND i.classification_id NOT LIKE '7134%')
+                     AND i.classification_id NOT LIKE '7134%' AND i.classification_id NOT LIKE '719%')
                     OR (i.classification_id LIKE '7152%' and i.description NOT LIKE '%асфальт%')
                     OR (i.classification_id LIKE '7152%' and i.description NOT LIKE '%рад_ац%')
                     OR (i.classification_id LIKE '7134%' and i.description NOT LIKE '%землеустр%')
