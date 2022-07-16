@@ -12,8 +12,8 @@ def main():
     #                                                         end_date=date(2022, 7, 7))
 
     # prozorro_update, error_code = prozorro_db_queries.select_interesting_prozorro(os.getenv("PROZORRO_DB_NAME"),
-    #                                         last_viewed_tender_time="2022-07-07T11:41:06.757350+03:00",
-    #                                         end_date=date(2022, 7, 7))
+    #                                         last_viewed_tender_time="2022-07-11T12:07:59.298365+03:00",
+    #                                         end_date=date(2022, 7, 11))
 
 
     prozorro_update, error_code = prozorro_db_queries.select_interesting_prozorro(os.getenv("PROZORRO_DB_NAME"),

@@ -11,6 +11,7 @@ def delete_old_data(db_filename, min_date_to_keep_in_base):
     try:
         connection_obj = sqlite3.connect(db_fn)
         connection_obj.execute("PRAGMA foreign_keys=1;")
+        connection_obj.execute("PRAGMA cache_size=-300000;")
         cursor_obj = connection_obj.cursor()
 
         statement = """DELETE FROM Tender_list 

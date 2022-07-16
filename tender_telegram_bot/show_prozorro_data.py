@@ -37,9 +37,12 @@ def show_interesting_prozorro(prozorro_info):
             # 17 i.deliveryAddress_locality, 18 i.deliveryAddress_streetAddress, 19 t.tenderID
 
             if not message[9] == None:
-                message_text += "*" + MarkdownV2_conversions.add_telegram_text_escaped_characters(message[9]) + ", *"
-            if not message[12] == None:
-                message_text += "*_" + MarkdownV2_conversions.add_telegram_text_escaped_characters(message[12]) + "_*"
+                message_text += "*" + MarkdownV2_conversions.add_telegram_text_escaped_characters(message[9]) + "*"
+            if not message[12] == None and not message[12] == '':
+                message_text += ", *_" + MarkdownV2_conversions.add_telegram_text_escaped_characters(message[12]) + "_*"
+            elif not message[11] == None and not message[11] == '':
+                message_text += ", *_" + MarkdownV2_conversions.add_telegram_text_escaped_characters(message[11]) + "_*"
+
             if not message[2] == None:
                 message_text += "\n[*" + MarkdownV2_conversions.add_telegram_text_escaped_characters(message[2]) + \
                                 "*](" + get_data_api_prozorro.ENDPOINT_Site + "?text=" +\
@@ -58,6 +61,8 @@ def show_interesting_prozorro(prozorro_info):
                     case "active.enquiries":
                         status = "Період уточнень"
                     case "active.tendering":
+                        status = "Очікування пропозицій"
+                    case "active.auction":
                         status = "Період аукціону"
                     case "active.qualification":
                         status = "Кваліфікація переможця"

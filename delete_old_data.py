@@ -5,7 +5,7 @@ from load_prozorro import *
 from dbhandling import *
 from datetime import datetime, timedelta, date
 
-DELETE_DAY_RETROSPECTIVE = 60
+DELETE_DAY_RETROSPECTIVE = 40
 
 def delete_old_data():
     load_dotenv()
