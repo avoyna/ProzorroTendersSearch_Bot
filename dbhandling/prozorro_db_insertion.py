@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 from datetime import datetime, timedelta
 from tender_telegram_bot import telegram_channel_scripting
 from load_prozorro import get_json_api_prozorro, search_api_prozorro
-from dbhandling import prozorro_db_create, prozorro_db_queries
+from dbhandling import prozorro_db_create, prozorro_db_queries, is_process_running
 
 
 ACTIVE_TENDER_STATUS_STARTWITH = ("active", "active")
@@ -20,53 +20,48 @@ def insert_update(db_filename, last_offset=-1, write_tender_list=False, write_te
     error_code = 0
     error_text = "Successful operation"
 
-    if is_initializing:
-        prozorro_db_create.drop_data_tables(db_filename=db_filename)
-        descending = 1
-        offset = 0.0
-        prozorro_db_create.create_prozorro_tables(db_filename=db_filename)
+    upload_runs = is_process_running.is_running_all_software(software_name="prozorro_bot")
 
+    if upload_runs:
+        print(f"Previous script has not finished executing. Data insertion into DB can't be started")
+        telegram_channel_scripting.raise_tech_message(telegram_bot_token=os.getenv("TELEGRAM_BOT_TOKEN"),
+                                                      err_module="Prozorro Server",
+                    err_message="Previous script has not finished executing. Data insertion into DB can't be started")
+        error_code = -100
     else:
-        if last_offset==-1:
-            last_offset = search_api_prozorro.find_first_row_offset()
+        if is_initializing:
+            prozorro_db_create.drop_data_tables(db_filename=db_filename)
+            descending = 1
+            offset = 0.0
+            prozorro_db_create.create_prozorro_tables(db_filename=db_filename)
 
-        try:
-            connection_obj = sqlite3.connect(db_fn)
-            cursor_obj = connection_obj.cursor()
+        else:
+            if last_offset==-1:
+                last_offset = search_api_prozorro.find_first_row_offset()
 
-            statement = """INSERT INTO Insertion_log (insertion_datetime, inserted_by_user, error_code, 
-                        error_text, last_offset) VALUES (?, ?, ?, ?, ?); """
+            try:
+                connection_obj = sqlite3.connect(db_fn)
+                cursor_obj = connection_obj.cursor()
 
-            currentDateTime = datetime.now()
+                statement = """INSERT INTO Insertion_log (insertion_datetime, inserted_by_user, error_code, 
+                            error_text, last_offset) VALUES (?, ?, ?, ?, ?); """
 
-            values = (currentDateTime, "db_creator", "-400", "Adding information to DB not finished", None)
+                currentDateTime = datetime.now()
 
-            cursor_obj.execute(statement, values)
-            connection_obj.commit()
+                values = (currentDateTime, "db_creator", "-400", "Adding information to DB not finished", None)
 
-            cursor_obj.execute("SELECT insertion_ID FROM Insertion_log ORDER BY insertion_ID DESC LIMIT 1")
-            insertion_log_id = cursor_obj.fetchone()[0]
+                cursor_obj.execute(statement, values)
+                connection_obj.commit()
 
-            offset_q = offset
+                cursor_obj.execute("SELECT insertion_ID FROM Insertion_log ORDER BY insertion_ID DESC LIMIT 1")
+                insertion_log_id = cursor_obj.fetchone()[0]
 
-            if new_data_only:
-                write_tender_list = True
-                write_tender_info = True
-                offset_q = prozorro_db_queries.find_last_successive_offset_in_db(db_filename)
-                tender_list_json_data, error_code = get_json_api_prozorro.retrieve_json_tender_list(
-                    return_records_limit=return_records_limit,
-                    offset=offset_q, descending=0)
-                if write_tender_list and (error_code == 0):
-                    error_code = insert_Tender_list(db_connection=connection_obj,
-                                                    db_cursor=cursor_obj,
-                                                    json_data=tender_list_json_data,
-                                                    log_id=insertion_log_id,
-                                                    write_tender_info=write_tender_info,
-                                                    single_date_to_load=single_date_to_load,
-                                                    write_active_tenders_only=write_active_tenders_only)
+                offset_q = offset
 
-                while (tender_list_json_data["data"] != []) and (error_code == 0):
-                    offset_q = tender_list_json_data["next_page"]["offset"]
+                if new_data_only:
+                    write_tender_list = True
+                    write_tender_info = True
+                    offset_q = prozorro_db_queries.find_last_successive_offset_in_db(db_filename)
                     tender_list_json_data, error_code = get_json_api_prozorro.retrieve_json_tender_list(
                         return_records_limit=return_records_limit,
                         offset=offset_q, descending=0)
@@ -79,51 +74,50 @@ def insert_update(db_filename, last_offset=-1, write_tender_list=False, write_te
                                                         single_date_to_load=single_date_to_load,
                                                         write_active_tenders_only=write_active_tenders_only)
 
-                        if error_code != 0:
-                            error_text = "Error with tender list upload"
-                        connection_obj.commit()
+                    while (tender_list_json_data["data"] != []) and (error_code == 0):
+                        offset_q = tender_list_json_data["next_page"]["offset"]
+                        tender_list_json_data, error_code = get_json_api_prozorro.retrieve_json_tender_list(
+                            return_records_limit=return_records_limit,
+                            offset=offset_q, descending=0)
+                        if write_tender_list and (error_code == 0):
+                            error_code = insert_Tender_list(db_connection=connection_obj,
+                                                            db_cursor=cursor_obj,
+                                                            json_data=tender_list_json_data,
+                                                            log_id=insertion_log_id,
+                                                            write_tender_info=write_tender_info,
+                                                            single_date_to_load=single_date_to_load,
+                                                            write_active_tenders_only=write_active_tenders_only)
 
-                offset_q = tender_list_json_data["next_page"]["offset"]
-                last_offset = offset_q
+                            if error_code != 0:
+                                error_text = "Error with tender list upload"
+                            connection_obj.commit()
 
-            elif pages_limit>1:
-                for i in range(pages_limit):
-                    tender_list_json_data, error_code = get_json_api_prozorro.retrieve_json_tender_list(
-                        return_records_limit=return_records_limit,
-                        offset=offset_q, descending=descending)
-
-                    offset_q = tender_list_json_data["data"]["next_page"]["offset"]
-
-                    if write_tender_list and (error_code==0):
-                        Tender_list_internal_ID, error_code = insert_Tender_list(db_connection=connection_obj,
-                                                        db_cursor=cursor_obj,
-                                                        json_data=tender_list_json_data,
-                                                        log_id=insertion_log_id,
-                                                        write_tender_info=write_tender_info,
-                                                        write_active_tenders_only=wrire_active_tenders_only)
-                        if error_code != 0:
-                            error_text = "Error with tender list upload"
-                        connection_obj.commit()
-
-                last_offset = offset_q
-
-            elif (single_date_to_load != None):
-                offset_q = search_api_prozorro.find_begin_date_offset(single_date_to_load)
-                tender_list_json_data, error_code = get_json_api_prozorro.retrieve_json_tender_list(
-                    return_records_limit=return_records_limit,
-                    offset=offset_q, descending=0)
-                if write_tender_list and (error_code==0):
-                    error_code = insert_Tender_list(db_connection=connection_obj,
-                                                    db_cursor=cursor_obj,
-                                                    json_data=tender_list_json_data,
-                                                    log_id=insertion_log_id,
-                                                    write_tender_info=write_tender_info,
-                                                    single_date_to_load=single_date_to_load,
-                                                    write_active_tenders_only=wrire_active_tenders_only)
-
-                while (tender_list_json_data["data"]!=[]) and (error_code==0) and \
-        (datetime.fromisoformat(tender_list_json_data["data"][0]["dateModified"]).date()==single_date_to_load):
                     offset_q = tender_list_json_data["next_page"]["offset"]
+                    last_offset = offset_q
+
+                elif pages_limit>1:
+                    for i in range(pages_limit):
+                        tender_list_json_data, error_code = get_json_api_prozorro.retrieve_json_tender_list(
+                            return_records_limit=return_records_limit,
+                            offset=offset_q, descending=descending)
+
+                        offset_q = tender_list_json_data["data"]["next_page"]["offset"]
+
+                        if write_tender_list and (error_code==0):
+                            Tender_list_internal_ID, error_code = insert_Tender_list(db_connection=connection_obj,
+                                                            db_cursor=cursor_obj,
+                                                            json_data=tender_list_json_data,
+                                                            log_id=insertion_log_id,
+                                                            write_tender_info=write_tender_info,
+                                                            write_active_tenders_only=wrire_active_tenders_only)
+                            if error_code != 0:
+                                error_text = "Error with tender list upload"
+                            connection_obj.commit()
+
+                    last_offset = offset_q
+
+                elif (single_date_to_load != None):
+                    offset_q = search_api_prozorro.find_begin_date_offset(single_date_to_load)
                     tender_list_json_data, error_code = get_json_api_prozorro.retrieve_json_tender_list(
                         return_records_limit=return_records_limit,
                         offset=offset_q, descending=0)
@@ -136,57 +130,72 @@ def insert_update(db_filename, last_offset=-1, write_tender_list=False, write_te
                                                         single_date_to_load=single_date_to_load,
                                                         write_active_tenders_only=wrire_active_tenders_only)
 
+                    while (tender_list_json_data["data"]!=[]) and (error_code==0) and \
+            (datetime.fromisoformat(tender_list_json_data["data"][0]["dateModified"]).date()==single_date_to_load):
+                        offset_q = tender_list_json_data["next_page"]["offset"]
+                        tender_list_json_data, error_code = get_json_api_prozorro.retrieve_json_tender_list(
+                            return_records_limit=return_records_limit,
+                            offset=offset_q, descending=0)
+                        if write_tender_list and (error_code==0):
+                            error_code = insert_Tender_list(db_connection=connection_obj,
+                                                            db_cursor=cursor_obj,
+                                                            json_data=tender_list_json_data,
+                                                            log_id=insertion_log_id,
+                                                            write_tender_info=write_tender_info,
+                                                            single_date_to_load=single_date_to_load,
+                                                            write_active_tenders_only=wrire_active_tenders_only)
 
+
+                            if error_code != 0:
+                                error_text = "Error with tender list upload"
+                            connection_obj.commit()
+
+                    offset_q = search_api_prozorro.find_begin_date_offset(single_date_to_load + timedelta(days=1))
+                    if offset_q<0:
+                        offset_q = search_api_prozorro.find_first_row_offset()
+                    last_offset = offset_q
+
+                else:
+                    tender_list_json_data, error_code = get_json_api_prozorro.retrieve_json_tender_list(
+                        return_records_limit=return_records_limit,
+                        offset=offset_q, descending=descending)
+
+                    if write_tender_list and (error_code==0):
+                        error_code = insert_Tender_list(db_connection=connection_obj,
+                                                        db_cursor=cursor_obj,
+                                                        json_data=tender_list_json_data,
+                                                        log_id=insertion_log_id,
+                                                        write_tender_info=write_tender_info)
                         if error_code != 0:
                             error_text = "Error with tender list upload"
                         connection_obj.commit()
 
-                offset_q = search_api_prozorro.find_begin_date_offset(single_date_to_load + timedelta(days=1))
-                if offset_q<0:
-                    offset_q = search_api_prozorro.find_first_row_offset()
-                last_offset = offset_q
-
-            else:
-                tender_list_json_data, error_code = get_json_api_prozorro.retrieve_json_tender_list(
-                    return_records_limit=return_records_limit,
-                    offset=offset_q, descending=descending)
-
-                if write_tender_list and (error_code==0):
-                    error_code = insert_Tender_list(db_connection=connection_obj,
-                                                    db_cursor=cursor_obj,
-                                                    json_data=tender_list_json_data,
-                                                    log_id=insertion_log_id,
-                                                    write_tender_info=write_tender_info)
-                    if error_code != 0:
-                        error_text = "Error with tender list upload"
-                    connection_obj.commit()
-
-                last_offset = offset_q
+                    last_offset = offset_q
 
 
-            statement = """ UPDATE 
-                            Insertion_log
-                        SET    
-                            error_code = ?, error_text = ?, last_offset = ?
-                        WHERE 
-                            insertion_ID = ?;"""
-            values = (error_code, error_text, last_offset, insertion_log_id)
+                statement = """ UPDATE 
+                                Insertion_log
+                            SET    
+                                error_code = ?, error_text = ?, last_offset = ?
+                            WHERE 
+                                insertion_ID = ?;"""
+                values = (error_code, error_text, last_offset, insertion_log_id)
 
-            # print(values)
-            cursor_obj.execute(statement, values)
-            connection_obj.commit()
+                # print(values)
+                cursor_obj.execute(statement, values)
+                connection_obj.commit()
 
-        except sqlite3.Error as e:
-            print(f"SQLite error {e.args[0]}")
-            telegram_channel_scripting.raise_tech_message(telegram_bot_token=os.getenv("TELEGRAM_BOT_TOKEN"),
-                                                 err_module="Prozorro Local DB",
-                                                 err_message="Database data insertion error in " + db_fn + "." +
-                                                             str(e.args[0]))
-            error_code = -1
+            except sqlite3.Error as e:
+                print(f"SQLite error {e.args[0]}")
+                telegram_channel_scripting.raise_tech_message(telegram_bot_token=os.getenv("TELEGRAM_BOT_TOKEN"),
+                                                     err_module="Prozorro Local DB",
+                                                     err_message="Database data insertion error in " + db_fn + "." +
+                                                                 str(e.args[0]))
+                error_code = -1
 
-        finally:
-            if connection_obj:
-                connection_obj.close()
+            finally:
+                if connection_obj:
+                    connection_obj.close()
 
     return error_code
 

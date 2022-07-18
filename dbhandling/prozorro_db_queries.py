@@ -71,7 +71,14 @@ def select_interesting_prozorro(db_filename, last_viewed_tender_time=None, start
     load_dotenv()
     db_fn = os.path.join(".", os.getenv("PROZORRO_DB_FOLDER"), db_filename)
     error_code = 0
-    upload_runs = is_process_running.is_running("db_load.py")
+    upload_runs = is_process_running.is_running_all_software(software_name="prozorro_bot")
+
+    if upload_runs:
+        print(f"Previous script has not finished executing. Data selection can't be started")
+        telegram_channel_scripting.raise_tech_message(telegram_bot_token=os.getenv("TELEGRAM_BOT_TOKEN"),
+                                                      err_module="Prozorro Server",
+                            err_message="Previous script has not finished executing. Data selection can't be started")
+        error_code = -130
 
     if update_from_last:
         json_user_data=user_load_info_json.get_user_last_db_load_info_from_json_file(username=username)

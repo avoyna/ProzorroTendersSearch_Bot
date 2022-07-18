@@ -33,7 +33,7 @@ def send_to_telegram(telegram_bot_token, telegram_channel_chat_id, telegram_chan
             time.sleep(5)
 
             response_json = response.json()
-            print(response_json)
+            # print(response_json)
         except requests.exceptions.RequestException as e:
             print("Connection error - code {}: {}".format(response.status_code, str(e)))
             raise_tech_message(telegram_bot_token=telegram_bot_token,
@@ -64,7 +64,7 @@ def send_to_telegram(telegram_bot_token, telegram_channel_chat_id, telegram_chan
     else:
         return -1
 
-    print(response)
+    # print(response)
     return 0
 
 def raise_tech_message(telegram_bot_token, err_module, err_message):
