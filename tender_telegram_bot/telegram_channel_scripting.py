@@ -23,6 +23,7 @@ def send_to_telegram(telegram_bot_token, telegram_channel_chat_id, telegram_chan
         >0 - fail
         -1 - no data
     """
+    response = None
 
     url = f"https://api.telegram.org/bot{telegram_bot_token}/sendMessage"
     if str_data != "":
@@ -36,11 +37,18 @@ def send_to_telegram(telegram_bot_token, telegram_channel_chat_id, telegram_chan
             response_json = response.json()
             # print(response_json)
         except requests.exceptions.RequestException as e:
-            print("Connection error - code {}: {}".format(response.status_code, str(e)))
-            raise_tech_message(telegram_bot_token=telegram_bot_token,
-                               err_module="ProZorro Bot - "+telegram_channel_name,
-                               err_message="String message can't be delivered. \n" + str(e))
-            return response.status_code
+            if response=None:
+                print("Connection error - code {}: {}".format("1000", str(e)))
+                raise_tech_message(telegram_bot_token=telegram_bot_token,
+                                   err_module="ProZorro Bot - " + telegram_channel_name,
+                    err_message="String message can't be delivered. No connection to Telegram. \n" + str(e))
+                return 1000
+            else:
+                print("Connection error - code {}: {}".format(response.status_code, str(e)))
+                raise_tech_message(telegram_bot_token=telegram_bot_token,
+                                   err_module="ProZorro Bot - "+telegram_channel_name,
+                                   err_message="String message can't be delivered. \n" + str(e))
+                return response.status_code
 
     elif html_data != "":
         params = {"chat_id": telegram_channel_chat_id, "text": html_data, "parse_mode": "HTML"}
@@ -49,11 +57,18 @@ def send_to_telegram(telegram_bot_token, telegram_channel_chat_id, telegram_chan
             response.raise_for_status()
             response_json = response.json()
         except requests.exceptions.RequestException as e:
-            print("Connection error - code {}: {}".format(response.status_code, str(e)))
-            raise_tech_message(telegram_bot_token=telegram_bot_token,
-                               err_module="ProZorro Bot - " + telegram_channel_name,
-                               err_message="HTML message can't be delivered. \n" + e)
-            return response.status_code
+            if response=None:
+                print("Connection error - code {}: {}".format("1000", str(e)))
+                raise_tech_message(telegram_bot_token=telegram_bot_token,
+                                   err_module="ProZorro Bot - " + telegram_channel_name,
+                        err_message="HTML message can't be delivered. No connection to Telegram. \n" + str(e))
+                return 1010
+            else:
+                print("Connection error - code {}: {}".format(response.status_code, str(e)))
+                raise_tech_message(telegram_bot_token=telegram_bot_token,
+                                   err_module="ProZorro Bot - " + telegram_channel_name,
+                                   err_message="HTML message can't be delivered. \n" + e)
+                return response.status_code
 
     elif json_data != "":
         params = {"chat_id": telegram_channel_chat_id, "text": json_data, "parse_mode": "MarkdownV2"}
