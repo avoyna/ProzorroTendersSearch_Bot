@@ -37,7 +37,7 @@ def send_to_telegram(telegram_bot_token, telegram_channel_chat_id, telegram_chan
             response_json = response.json()
             # print(response_json)
         except requests.exceptions.RequestException as e:
-            if response=None:
+            if response==None:
                 print("Connection error - code {}: {}".format("1000", str(e)))
                 raise_tech_message(telegram_bot_token=telegram_bot_token,
                                    err_module="ProZorro Bot - " + telegram_channel_name,
@@ -57,7 +57,7 @@ def send_to_telegram(telegram_bot_token, telegram_channel_chat_id, telegram_chan
             response.raise_for_status()
             response_json = response.json()
         except requests.exceptions.RequestException as e:
-            if response=None:
+            if response==None:
                 print("Connection error - code {}: {}".format("1000", str(e)))
                 raise_tech_message(telegram_bot_token=telegram_bot_token,
                                    err_module="ProZorro Bot - " + telegram_channel_name,

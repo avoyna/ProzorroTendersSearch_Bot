@@ -41,6 +41,8 @@ def insert_update(db_filename, last_offset=-1, write_tender_list=False, write_te
 
             try:
                 connection_obj = sqlite3.connect(db_fn)
+                connection_obj.execute("PRAGMA foreign_keys=1;")
+                connection_obj.execute("PRAGMA cache_size=-300000;")
                 cursor_obj = connection_obj.cursor()
 
                 statement = """INSERT INTO Insertion_log (insertion_datetime, inserted_by_user, error_code, 

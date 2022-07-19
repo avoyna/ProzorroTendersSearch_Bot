@@ -26,6 +26,7 @@ def retrieve_json_tender_list(api_key="", endpoint="", return_records_limit=100,
     if endpoint=="":
         endpoint = get_data_api_prozorro.ENDPOINT_API
 
+    response=None
     response_json=""
     err_code = 0
     params = {}
@@ -48,13 +49,21 @@ def retrieve_json_tender_list(api_key="", endpoint="", return_records_limit=100,
         response_json = response.json()
 
     except requests.exceptions.RequestException as e:
-        print("Connection error - code {}: {}".format(response.status_code, str(e)))
-        telegram_channel_scripting.raise_tech_message(
-            telegram_bot_token=os.getenv("TELEGRAM_BOT_TOKEN"),
-            err_module="Prozorro Local DB",
-            err_message="Load from Prozorro Tender_list data error. " +
-                        str(e.args[0]))
-        err_code = -11
+        if response == None:
+            print("Connection error - code {}: {}".format("1000", str(e)))
+            telegram_channel_scripting.raise_tech_message(telegram_bot_token=os.getenv("TELEGRAM_BOT_TOKEN"),
+                err_module="Prozorro Local DB",
+                err_message="Load from Prozorro Tender_list data error. No connection." +
+                            str(e.args[0]))
+            return -1011
+        else:
+            print("Connection error - code {}: {}".format(response.status_code, str(e)))
+            telegram_channel_scripting.raise_tech_message(
+                telegram_bot_token=os.getenv("TELEGRAM_BOT_TOKEN"),
+                err_module="Prozorro Local DB",
+                err_message="Load from Prozorro Tender_list data error. " +
+                            str(e.args[0]))
+            err_code = -11
 
     return response_json, err_code
 
