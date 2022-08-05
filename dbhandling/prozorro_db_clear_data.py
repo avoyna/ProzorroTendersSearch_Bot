@@ -4,8 +4,12 @@ from dbhandling import is_process_running
 from tender_telegram_bot import telegram_channel_scripting
 from dotenv import load_dotenv
 
-def delete_old_data(db_filename, min_date_to_keep_in_base):
+def progress(status, remaining, total):
+    print(f'Copied {total - remaining} of {total} pages...')
+
+def delete_old_data(db_filename, min_date_to_keep_in_base, backup=False):
     connection_obj = None
+    backup_connection_obj = None
     error_code = 0
     load_dotenv()
     db_fn = os.path.join(".", os.getenv("PROZORRO_DB_FOLDER"), db_filename)
@@ -22,7 +26,12 @@ def delete_old_data(db_filename, min_date_to_keep_in_base):
         try:
             connection_obj = sqlite3.connect(db_fn)
             connection_obj.execute("PRAGMA foreign_keys=1;")
-            connection_obj.execute("PRAGMA cache_size=-300000;")
+            connection_obj.execute("PRAGMA cache_size=-400000;")
+            if backup:
+                backup_fn = db_fn[:db_fn.rfind(".")]+".bkp"
+                backup_connection_obj = sqlite3.connect(backup_fn)
+                connection_obj.backup(backup_connection_obj, progress=progress)
+
             cursor_obj = connection_obj.cursor()
 
             statement = """DELETE FROM Tender_list 
@@ -30,6 +39,9 @@ def delete_old_data(db_filename, min_date_to_keep_in_base):
             value = (min_date_to_keep_in_base,)
             cursor_obj.execute(statement, value)
             connection_obj.commit()
+            connection_obj.execute("VACUUM")
+
+            print("Data deleted till ", min_date_to_keep_in_base)
 
 
         except sqlite3.Error as e:

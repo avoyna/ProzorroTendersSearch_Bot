@@ -50,28 +50,29 @@ def insert_prozorro_data():
     #                                     descending=1,
     #                                     return_records_limit=2)
 
-    ###load all tenders of the specific date
+    ###load all tenders of the specific date (only today)
 
-    # load_date = date(2022, 7, 5)
-    # prozorro_db_insertion.insert_update(db_filename=os.getenv("PROZORRO_DB_NAME"),
-    #                                 write_tender_list=True,
-    #                                 write_tender_info=True,
-    #                                 single_date_to_load=load_date)
-
-    ###load all tenders NumDays after the specific date
-
-    # NumDays=2
-    # load_date = date(2022, 7, 5)
-    # for i in range(NumDays):
-    # load_date += timedelta(days=1)
-    # prozorro_db_insertion.insert_update(db_filename=os.getenv("PROZORRO_DB_NAME"),
-    #                                 write_tender_list=True,
-    #                                 write_tender_info=True,
-    #                                 single_date_to_load=load_date)
-
-    ### load all data from the last successive download
+    load_date = datetime.now() - timedelta(1)*0 #date(2022, 7, 5)
     prozorro_db_insertion.insert_update(db_filename=os.getenv("PROZORRO_DB_NAME"),
-                                        new_data_only=True, write_active_tenders_only=True)
+                                        write_tender_list=True,
+                                        write_tender_info=True,
+                                        single_date_to_load=load_date)
+
+        ###load all tenders NumDays after the specific date
+
+        # NumDays=2
+        # load_date = date(2022, 7, 5)
+        # for i in range(NumDays):
+        # load_date += timedelta(days=1)
+        # prozorro_db_insertion.insert_update(db_filename=os.getenv("PROZORRO_DB_NAME"),
+        #                                 write_tender_list=True,
+        #                                 write_tender_info=True,
+        #                                 single_date_to_load=load_date)
+
+    #
+    # ### load all data from the last successive download
+    # prozorro_db_insertion.insert_update(db_filename=os.getenv("PROZORRO_DB_NAME"),
+    #                                     new_data_only=True, write_active_tenders_only=True)
 
 
 def main():
