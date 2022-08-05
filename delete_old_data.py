@@ -11,7 +11,8 @@ def delete_old_data():
     load_dotenv()
     min_date_to_keep_in_base = (datetime.now()-timedelta(days=DELETE_DAY_RETROSPECTIVE)).date()
     prozorro_db_clear_data.delete_old_data(db_filename=os.getenv("PROZORRO_DB_NAME"),
-                                           min_date_to_keep_in_base=min_date_to_keep_in_base)
+                                           min_date_to_keep_in_base=min_date_to_keep_in_base,
+                                           backup=True)
     return
 
 
