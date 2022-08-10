@@ -23,7 +23,7 @@ def create_db(db_filename):
 
     db_fn = os.path.join(".",os.getenv("PROZORRO_DB_FOLDER"),db_filename)
 
-    print(db_fn)
+    # print(db_fn)
     if os.path.isfile(db_fn):
         if os.path.getsize(db_fn) < 100: # SQLite database file header is 100 bytes
             existing_file_is_correct_db = False
