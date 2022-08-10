@@ -33,6 +33,7 @@ def insert_update(db_filename, last_offset=-1, write_tender_list=False, write_te
             prozorro_db_create.drop_data_tables(db_filename=db_filename)
             descending = 1
             offset = 0.0
+            prozorro_db_create.create_db(db_filename=db_filename)
             prozorro_db_create.create_prozorro_tables(db_filename=db_filename)
 
         else:
