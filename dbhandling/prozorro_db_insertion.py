@@ -112,7 +112,7 @@ def insert_update(db_filename, last_offset=-1, write_tender_list=False, write_te
                                                             json_data=tender_list_json_data,
                                                             log_id=insertion_log_id,
                                                             write_tender_info=write_tender_info,
-                                                            write_active_tenders_only=wrire_active_tenders_only)
+                                                            write_active_tenders_only=write_active_tenders_only)
                             if error_code != 0:
                                 error_text = "Error with tender list upload"
                             connection_obj.commit()
@@ -131,7 +131,7 @@ def insert_update(db_filename, last_offset=-1, write_tender_list=False, write_te
                                                         log_id=insertion_log_id,
                                                         write_tender_info=write_tender_info,
                                                         single_date_to_load=single_date_to_load,
-                                                        write_active_tenders_only=wrire_active_tenders_only)
+                                                        write_active_tenders_only=write_active_tenders_only)
 
                     while (tender_list_json_data["data"]!=[]) and (error_code==0) and \
             (datetime.fromisoformat(tender_list_json_data["data"][0]["dateModified"]).date()==single_date_to_load):
@@ -146,7 +146,7 @@ def insert_update(db_filename, last_offset=-1, write_tender_list=False, write_te
                                                             log_id=insertion_log_id,
                                                             write_tender_info=write_tender_info,
                                                             single_date_to_load=single_date_to_load,
-                                                            write_active_tenders_only=wrire_active_tenders_only)
+                                                            write_active_tenders_only=write_active_tenders_only)
 
 
                             if error_code != 0:
