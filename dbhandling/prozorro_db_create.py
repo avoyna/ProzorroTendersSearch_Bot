@@ -18,6 +18,9 @@ def create_db(db_filename):
     error_code = 0
     existing_file_is_correct_db = True
     load_dotenv()
+    if (not os.path.exists(os.path.join(".",os.getenv("PROZORRO_DB_FOLDER")))):
+        os.mkdir(os.getenv("PROZORRO_DB_FOLDER"))
+
     db_fn = os.path.join(".",os.getenv("PROZORRO_DB_FOLDER"),db_filename)
 
     print(db_fn)
@@ -47,7 +50,7 @@ def create_db(db_filename):
         conn = sqlite3.connect(db_fn)
         conn.execute("PRAGMA foreign_keys=1;")
         # print(sqlite3.version)
-    except Error as e:
+    except sqlite3.Error as e:
         print(e)
         telegram_channel_scripting.raise_tech_message(telegram_bot_token=os.getenv("TELEGRAM_BOT_TOKEN"),
                                 err_module="Prozorro Local DB",
