@@ -23,7 +23,7 @@ def insert_prozorro_data():
     # err_code, offset, next_url = get_data_api_prozorro.retrieve_data(return_records_limit=10, offset=0.0,
 
     # ### simple db initializing with data erasing
-    # prozorro_db_insertion.insert_update(db_filename=os.getenv("PROZORRO_DB_NAME"), is_initializing=True)
+    prozorro_db_insertion.insert_update(db_filename=os.getenv("PROZORRO_DB_NAME"), is_initializing=True)
 
     ### load of 1 page of tenders (10 last tenders) without saving tender list and tender details
     ### accending since the last entry in Prozorro DB (no effect)
@@ -52,11 +52,11 @@ def insert_prozorro_data():
 
     ###load all tenders of the specific date (only today)
 
-    load_date = datetime.now() - timedelta(1)*0 #date(2022, 7, 5)
-    prozorro_db_insertion.insert_update(db_filename=os.getenv("PROZORRO_DB_NAME"),
-                                        write_tender_list=True,
-                                        write_tender_info=True,
-                                        single_date_to_load=load_date)
+    # load_date = datetime.now() - timedelta(1)*0 #date(2022, 7, 5)
+    # prozorro_db_insertion.insert_update(db_filename=os.getenv("PROZORRO_DB_NAME"),
+    #                                     write_tender_list=True,
+    #                                     write_tender_info=True,
+    #                                     single_date_to_load=load_date)
 
         ###load all tenders NumDays after the specific date
 
