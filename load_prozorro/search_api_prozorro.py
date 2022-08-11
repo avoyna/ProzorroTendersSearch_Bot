@@ -15,7 +15,9 @@ def find_begin_date_offset(search_date):
     """
 
     offset_id = -1 # error code
+    next_offset = -1
     output_limit = 1000
+
 
     params = {}
     params["limit"] = output_limit
