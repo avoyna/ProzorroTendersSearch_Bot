@@ -44,7 +44,7 @@ def save_user_last_db_load_info_to_json_file(db_connection, db_cursor, username=
 def get_user_last_db_load_info_from_json_file(username="user1"):
     load_dotenv()
     json_user_data = {}
-    json_fn = os.path.join(".",os.getenv("PROZORRO_DB_FOLDER"),os.getenv("prozorro_username_json_filename"))
+    json_fn = os.path.join(".",os.getenv("PROZORRO_DB_FOLDER"),os.getenv("PROZORRO_USERNAME_JSON_FILENAME"))
     if os.path.exists(json_fn):
         with open(json_fn, 'r') as json_file:
             json_user_data = json.load(json_file)
