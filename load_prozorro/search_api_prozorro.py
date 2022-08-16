@@ -28,7 +28,7 @@ def find_begin_date_offset(search_date):
         response_json = response.json()
 
     except requests.exceptions.RequestException as e:
-        print("Connection error - code {}: {}".format(response.status_code, str(e)))
+        print("Connection error: {}".format(str(e)))
 
     if not response_json["data"] == []:
         last_isodate_on_load = response_json["data"][0]["dateModified"]
@@ -60,7 +60,7 @@ def find_begin_date_offset(search_date):
                     next_offset = response_json["next_page"]["offset"]
 
                 except requests.exceptions.RequestException as e:
-                    print("Connection error - code {}: {}".format(response.status_code, str(e)))
+                    print("Connection error - code: {}".format(str(e)))
 
             while output_limit>1:
                 next_offset = offset_id
@@ -86,7 +86,7 @@ def find_begin_date_offset(search_date):
                         next_offset = response_json["next_page"]["offset"]
 
                     except requests.exceptions.RequestException as e:
-                        print("Connection error - code {}: {}".format(response.status_code, str(e)))
+                        print("Connection error: {}".format(str(e)))
 
 
             # params = {}
@@ -134,7 +134,7 @@ def find_end_date_offset(search_date):
         response_json = response.json()
 
     except requests.exceptions.RequestException as e:
-        print("Connection error - code {}: {}".format(response.status_code, str(e)))
+        print("Connection error - code: {}".format(str(e)))
 
     if not response_json["data"] == []:
         last_isodate_on_load = response_json["data"][-1]["dateModified"]
@@ -161,7 +161,7 @@ def find_end_date_offset(search_date):
                 next_offset = response_json["next_page"]["offset"]
 
             except requests.exceptions.RequestException as e:
-                print("Connection error - code {}: {}".format(response.status_code, str(e)))
+                print("Connection error: {}".format(str(e)))
 
 
         while output_limit>1:
@@ -188,7 +188,7 @@ def find_end_date_offset(search_date):
                     next_offset = response_json["next_page"]["offset"]
 
                 except requests.exceptions.RequestException as e:
-                    print("Connection error - code {}: {}".format(response.status_code, str(e)))
+                    print("Connection error: {}".format(str(e)))
 
 
         params = {}
@@ -204,7 +204,7 @@ def find_end_date_offset(search_date):
             offset_id = response_json["next_page"]["offset"]
 
         except requests.exceptions.RequestException as e:
-            print("Connection error - code {}: {}".format(response.status_code, str(e)))
+            print("Connection error: {}".format(str(e)))
 
     # print(response.request.url)
     # print(offset_id)
