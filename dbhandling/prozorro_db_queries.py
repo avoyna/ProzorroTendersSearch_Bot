@@ -102,7 +102,9 @@ def select_interesting_prozorro(db_filename, last_viewed_tender_time=None, start
                     LEFT JOIN items i ON i.tender_internal_ID = t.internal_ID
                     LEFT JOIN procuringEntity pe ON pe.internal_ID = t.procuringEntity_internal_ID
                     LEFT JOIN Tender_list tl ON tl.internal_ID = t.Tender_list_internal_ID
-                    WHERE status LIKE 'active%' and deliveryAddress_region LIKE '%Київ%' 
+                    WHERE (status LIKE 'active%' AND NOT status='active.pre-qualification*' 
+                    AND NOT status='active.qualification' AND NOT status='active.tendering' 
+                    AND NOT status='active.awarded') AND deliveryAddress_region LIKE '%Київ%' 
                     AND ( (i.classification_id LIKE '45%' AND i.classification_id NOT LIKE '4545%')
                     OR (i.classification_id LIKE '4545%' and i.description NOT LIKE '%асфальт%')
                     OR (i.classification_id LIKE '507%' AND i.classification_id NOT LIKE '5073%')  
