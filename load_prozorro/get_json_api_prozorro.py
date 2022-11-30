@@ -17,7 +17,7 @@ def retrieve_json_tender_list(api_key="", endpoint="", return_records_limit=100,
     :return: response_json: JSON with tenders list
         err_code:
             0 - no errors
-            >0 - error code
+            <0 - error code
                 next_offset: offset at the end of page
                 next_url: url_of the next page
 
@@ -27,7 +27,7 @@ def retrieve_json_tender_list(api_key="", endpoint="", return_records_limit=100,
         endpoint = get_data_api_prozorro.ENDPOINT_API
 
     response=None
-    response_json=""
+    response_json= {}
     err_code = 0
     params = {}
 
