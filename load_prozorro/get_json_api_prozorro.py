@@ -43,6 +43,8 @@ def retrieve_json_tender_list(api_key="", endpoint="", return_records_limit=100,
         offset = search_api_prozorro.find_first_row_offset()
         params["offset"] = offset
 
+    params["verify"] = False
+
     try:
         response = requests.get(endpoint, params=params)
         response.raise_for_status()
@@ -55,7 +57,7 @@ def retrieve_json_tender_list(api_key="", endpoint="", return_records_limit=100,
                 err_module="Prozorro Local DB",
                 err_message="Load from Prozorro Tender_list data error. No connection." +
                             str(e.args[0]))
-            return -1011
+            err_code = -1011
         else:
             print("Connection error - code {}: {}".format(response.status_code, str(e)))
             telegram_channel_scripting.raise_tech_message(
