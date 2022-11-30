@@ -23,6 +23,7 @@ def find_begin_date_offset(search_date):
     params["limit"] = output_limit
     params["descending"] = 1
     try:
+        requests.packages.urllib3.disable_warnings()
         response = requests.get(get_data_api_prozorro.ENDPOINT_API, verify=False, params=params)
         response.raise_for_status()
         response_json = response.json()
@@ -50,6 +51,7 @@ def find_begin_date_offset(search_date):
                 params["descending"] = 1
 
                 try:
+                    requests.packages.urllib3.disable_warnings()
                     response = requests.get(get_data_api_prozorro.ENDPOINT_API, verify=False, params=params)
                     # print(response.request.url)
                     response.raise_for_status()
@@ -76,6 +78,7 @@ def find_begin_date_offset(search_date):
                     params["descending"] = 1
 
                     try:
+                        requests.packages.urllib3.disable_warnings()
                         response = requests.get(get_data_api_prozorro.ENDPOINT_API, verify=False, params=params)
                         # print(response.request.url)
                         response.raise_for_status()
@@ -96,6 +99,7 @@ def find_begin_date_offset(search_date):
             # params["descending"] = 1
             #
             # try:
+            #     requests.packages.urllib3.disable_warnings()
             #     response = requests.get(ENDPOINT_API, verify=False, params=params)
             #     response.raise_for_status()
             #     response_json = response.json()
@@ -129,6 +133,7 @@ def find_end_date_offset(search_date):
     params["limit"] = output_limit
     params["descending"] = 1
     try:
+        requests.packages.urllib3.disable_warnings()
         response = requests.get(ENDPOINT_API, verify=False, params=params)
         response.raise_for_status()
         response_json = response.json()
@@ -151,6 +156,7 @@ def find_end_date_offset(search_date):
             params["descending"] = 1
 
             try:
+                requests.packages.urllib3.disable_warnings()
                 response = requests.get(get_data_api_prozorro.ENDPOINT_API, verify=False, params=params)
                 # print(response.request.url)
                 response.raise_for_status()
@@ -179,6 +185,7 @@ def find_end_date_offset(search_date):
                 params["descending"] = 1
 
                 try:
+                    requests.packages.urllib3.disable_warnings()
                     response = requests.get(get_data_api_prozorro.ENDPOINT_API, verify=False, params=params)
                     response.raise_for_status()
                     response_json = response.json()
@@ -198,6 +205,7 @@ def find_end_date_offset(search_date):
         params["descending"] = 1
 
         try:
+            requests.packages.urllib3.disable_warnings()
             response = requests.get(get_data_api_prozorro.ENDPOINT_API, verify=False, params=params)
             response.raise_for_status()
             response_json = response.json()
@@ -218,6 +226,7 @@ def find_first_row_offset():
     params["limit"] = 1
     params["descending"] = 1
     try:
+        requests.packages.urllib3.disable_warnings()
         response = requests.get(get_data_api_prozorro.ENDPOINT_API, verify=False, params=params)
         response.raise_for_status()
         response_json = response.json()
