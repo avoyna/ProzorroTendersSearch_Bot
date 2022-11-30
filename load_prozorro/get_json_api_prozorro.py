@@ -46,7 +46,7 @@ def retrieve_json_tender_list(api_key="", endpoint="", return_records_limit=100,
     params["verify"] = False
 
     try:
-        response = requests.get(endpoint, params=params)
+        response = requests.get(endpoint, verify=False, params=params)
         response.raise_for_status()
         response_json = response.json()
 
@@ -91,7 +91,7 @@ def retrieve_single_tender_data_to_json(tender_id, api_key="", endpoint=""):
     tender_url = endpoint +"/" + tender_id
 
     try:
-        response = requests.get(tender_url, params=params)
+        response = requests.get(tender_url, verify=False, params=params)
         response.raise_for_status()
         response_json = response.json()
 
