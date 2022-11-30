@@ -77,7 +77,7 @@ def insert_update(db_filename, last_offset=-1, write_tender_list=False, write_te
                                                         single_date_to_load=single_date_to_load,
                                                         write_active_tenders_only=write_active_tenders_only)
 
-                    while (tender_list_json_data["data"] != []) and (error_code == 0):
+                    while ("data" in tender_list_json_data) and (tender_list_json_data["data"] != []) and (error_code == 0):
                         offset_q = tender_list_json_data["next_page"]["offset"]
                         tender_list_json_data, error_code = get_json_api_prozorro.retrieve_json_tender_list(
                             return_records_limit=return_records_limit,
