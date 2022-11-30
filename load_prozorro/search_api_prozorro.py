@@ -223,7 +223,8 @@ def find_first_row_offset():
         response_json = response.json()
         offset_id = response_json["next_page"]["offset"]
     except requests.exceptions.RequestException as e:
-        print("Connection error - code {}: {}".format(response.status_code, str(e)))
+        print("Connection error: {}".format(str(e)))
+        #print("Connection error - code {}: {}".format(response.status_code, str(e)))
 
 
     return offset_id
